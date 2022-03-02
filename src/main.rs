@@ -3,8 +3,15 @@
 const N: usize = 3;
 
 /// A board is a row major array of characters
+///
+/// 'X' is an X move
+/// 'O' is an O move
+/// ' ' is a blank space
+/// Anything else is undefined, the program is liable to freak out
 type Board = [[char; N]; N];
 
+/// Describes a list of moves
+type Moves = Vec<(usize, usize)>;
 /// Returns whether an array of length N is all X or Os
 /// 1 if X wins, -1 if O wins, 0 if neither
 ///
@@ -137,6 +144,30 @@ fn get_possible_moves(board: &Board) -> Vec<(usize, usize)> {
 	moves
 }
 
+/// Runs minmax on a board
+///
+/// * `board` - the board to minmax
+/// Returns the score of this board
+// fn minmax(board: &Board) -> (i8, Moves) {
+
+// }
+
+/// Finds the board created by a list of moves
+///
+/// * `moves` - the moves to replay
+fn replay_moves(moves: &Moves) -> Board {
+	let mut board = [[' '; N]; N];
+	let mut player_x = true;
+
+	// Replay
+	for (r, c) in moves {
+		board[*r][*c] = if player_x {'X'} else {'O'};
+		player_x = !player_x;
+	}
+
+	board
+}
+
 /// Checks if a board is in a game ending state,
 ///
 /// returns (false, _) if not the end.
@@ -197,12 +228,6 @@ fn main() {
 
 	// Set blank board
 	let mut board = [[' '; N]; N];
-	board[2][0] = 'X';
-	board[1][1] = 'X';
-	board[0][2] = 'X';
-	board[1][2] = 'O';
-	board[2][1] = 'O';
-	display_board(&board);
-	let (is_terminal, score) = utility(&board);
-	println!("Game end?: {is_terminal}, with a score: {score}");
+
+
 }
