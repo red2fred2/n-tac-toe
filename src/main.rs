@@ -1,6 +1,6 @@
 /// How big of a board to make. Makes an NxN tic tac toe board
-/// Doesn't work when N = 0
-const N: usize = 3;
+/// Doesn't work when N < 2
+const N: usize = 4;
 
 /// A board is a row major array of characters
 ///
