@@ -1,9 +1,31 @@
 /// How big of a board to make. Makes an NxN tic tac toe board
-/// Does weird stuff when N = 0
+/// Doesn't work when N = 0
 const N: usize = 3;
 
 /// A board is a row major array of characters
 type Board = [[char; N]; N];
+
+/// Returns whether an array of length N is all X or Os
+///
+/// * `array` - the array to be checked
+fn array_scores(array: &[char; N]) -> bool {
+	let first = array[0];
+	match first {
+		'X' => {
+			for c in array {
+				if c != &'X' {return false}
+			}
+			true
+		},
+		'O' => {
+			for c in array {
+				if c != &'O' {return false}
+			}
+			true
+		},
+		_ => false
+	}
+}
 
 /// Returns the number of blank spaces left on this board
 ///
@@ -43,7 +65,38 @@ fn display_board(board: &Board) {
 	}
 }
 
+/// Checks if a board is in a game ending state
+fn is_terminal(board: &Board) -> bool {
+	let num_blanks = count_blanks(board);
+
+	// Check if enough moves have even been made to be terminal
+	let blank_threshold = N * N - 2 * N + 1;
+	if num_blanks > blank_threshold {
+		return false
+	}
+
+	// Check if there are no blank spaces
+	if num_blanks == 0 {
+		return true
+	}
+
+	// Check rows
+	for row in board {
+		if array_scores(row) {
+			return true
+		}
+	}
+
+	true
+}
+
 fn main() {
+	// Hit the eject button if N is 0
+	// a 0x0 game of tic tac toe makes no sense
+	if N == 0 {
+		return
+	}
+
 	// Set blank board
 	let mut board = [[' '; N]; N];
 	board[1][2] = 'X';
