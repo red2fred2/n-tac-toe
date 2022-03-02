@@ -6,24 +6,25 @@ const N: usize = 3;
 type Board = [[char; N]; N];
 
 /// Returns whether an array of length N is all X or Os
+/// 1 if X wins, -1 if O wins, 0 if neither
 ///
 /// * `array` - the array to be checked
-fn array_scores(array: &[char; N]) -> bool {
+fn array_scores(array: &[char; N]) -> i8 {
 	let first = array[0];
 	match first {
 		'X' => {
 			for c in array {
-				if c != &'X' {return false}
+				if c != &'X' {return 0}
 			}
-			true
+			1
 		},
 		'O' => {
 			for c in array {
-				if c != &'O' {return false}
+				if c != &'O' {return 0}
 			}
-			true
+			-1
 		},
-		_ => false
+		_ => 0
 	}
 }
 
@@ -118,44 +119,55 @@ fn get_diag_descending(board: &Board) -> [char; N] {
 	array
 }
 
-/// Checks if a board is in a game ending state
-fn is_terminal(board: &Board) -> bool {
+/// Checks if a board is in a game ending state,
+///
+/// returns (false, _) if not the end.
+/// (true, 1) if X wins,
+/// (true, -1) if O wins,
+/// (true, 0) if it was a draw
+///
+/// * `board` - the board to check
+fn utility(board: &Board) -> (bool, i8) {
 	let num_blanks = count_blanks(board);
 
 	// Check if enough moves have even been made to be terminal
 	let blank_threshold = N * N - 2 * N + 1;
 	if num_blanks > blank_threshold {
-		return false
+		return (false, 0)
 	}
 
 	// Check if there are no blank spaces
 	if num_blanks == 0 {
-		return true
+		return (true, 0)
 	}
 
 	// Check rows
 	for row in board {
-		if array_scores(row) {
-			return true
+		let score = array_scores(row);
+		if score != 0 {
+			return (true, score)
 		}
 	}
 
 	// Check columns
 	for col in 0..N {
-		if array_scores(&get_col(board, col)) {
-			return true
+		let score = array_scores(&get_col(board, col));
+		if score != 0 {
+			return (true, score)
 		}
 	}
 
 	// Check diagonals
-	if array_scores(&get_diag_descending(board)) {
-		return true
+	let score = array_scores(&get_diag_descending(board));
+	if score != 0 {
+		return (true, score)
 	}
-	if array_scores(&get_diag_ascending(board)) {
-		return true
+	let score = array_scores(&get_diag_ascending(board));
+	if score != 0 {
+		return (true, score)
 	}
 
-	false
+	(false, 0)
 }
 
 fn main() {
@@ -167,8 +179,12 @@ fn main() {
 
 	// Set blank board
 	let mut board = [[' '; N]; N];
-	board[1][2] = 'X';
+	board[2][0] = 'X';
+	board[1][1] = 'X';
+	board[0][2] = 'X';
+	board[1][2] = 'O';
+	board[2][1] = 'O';
 	display_board(&board);
-	let is_terminal = is_terminal(&board);
-	println!("Game end?: {is_terminal}");
+	let (is_terminal, score) = utility(&board);
+	println!("Game end?: {is_terminal}, with a score: {score}");
 }
