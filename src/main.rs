@@ -292,6 +292,13 @@ fn main() {
 	// Set blank board
 	let mut board = [[' '; N]; N];
 
+	board[0][0] = 'X';
+	board[0][1] = 'O';
+	board[0][2] = 'O';
+	board[0][3] = 'O';
+	board[1][1] = 'X';
+	board[2][2] = 'X';
+
 	display_board(&board);
 
 	let (mut moves, score) = max(&mut board);
