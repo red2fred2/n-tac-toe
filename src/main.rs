@@ -1,6 +1,14 @@
+use std::collections::HashMap;
+
 /// How big of a board to make. Makes an NxN tic tac toe board
 /// Doesn't work when N < 2
 const N: usize = 4;
+
+// Make player selection easier
+#[allow(dead_code)]
+const O: bool = false;
+#[allow(dead_code)]
+const X: bool = true;
 
 /// A board is a row major array of characters
 ///
@@ -9,6 +17,9 @@ const N: usize = 4;
 /// ' ' is a blank space
 /// Anything else is undefined, the program is liable to freak out
 type Board = [[char; N]; N];
+
+/// A cache is a map of board layouts to score and best moves
+type Cache = HashMap<Board, (i8, Moves)>;
 
 /// Describes a list of moves
 type Moves = Vec<(usize, usize)>;
@@ -144,11 +155,13 @@ fn get_possible_moves(board: &Board) -> Moves {
 	moves
 }
 
-/// Does the best move for max (X) at this point
+/// Does the best move at this point
 ///
 /// * `board` - the board to do a min step at
+/// * `cache` - the cached of boards
+/// * `player` - true if X, false if O
 /// Returns the best moves and score of that best move
-fn max(board: &mut Board) -> (Moves, i8) {
+fn minimax(board: &mut Board, cache: &mut Cache, player: bool) -> (Moves, i8) {
 	match utility(board) {
 		// If terminal, pass along the score
 		(true, s) => (Vec::new(), s),
@@ -158,59 +171,25 @@ fn max(board: &mut Board) -> (Moves, i8) {
 
 			// Find the highest score of those moves
 			// Start with an impossibly bad score
-			let mut max_score = i8::MIN;
-			let mut max_moves = Vec::new();
+			let mut best_score = if player {i8::MIN} else {i8::MAX};
+			let mut best_moves = Vec::new();
 
 			for (r, c) in possible_moves {
-				board[r][c] = 'X';
-				let (mut moves, score) = min(board);
+				board[r][c] = if player {'X'} else {'O'};
+				let (mut moves, score) = minimax(board, cache, !player);
 
 				// Set the max score if this is better
-				if score > max_score {
-					max_score = score;
+				if (player && score > best_score) ||
+				   (!player && score < best_score) {
+					best_score = score;
 					moves.push((r,c));
-					max_moves = moves;
+					best_moves = moves;
 				}
 
 				// Undo the move for next attempt
 				board[r][c] = ' ';
 			}
-			(max_moves, max_score)
-		}
-	}
-}
-
-/// Does the best move for min (O) at this point
-///
-/// * `board` - the board to do a min step at
-/// Returns the best moves and score of that best move
-fn min(board: &mut Board) -> (Moves, i8) {
-	match utility(board) {
-		// If terminal, pass along the score
-		(true, s) => (Vec::new(), s),
-		// Otherwise check another layer down
-		_ => {
-			let possible_moves = get_possible_moves(board);
-
-			// Find the highest score of those moves
-			// Start with an impossibly bad score
-			let mut min_score = i8::MAX;
-			let mut min_moves = Vec::new();
-
-			for (r, c) in possible_moves {
-				board[r][c] = 'O';
-				let (mut moves, score) = max(board);
-
-				// Set the max score if this is better
-				if score < min_score {
-					min_score = score;
-					moves.push((r,c));
-					min_moves = moves;
-				}
-				// Undo the move for next attempt
-				board[r][c] = ' ';
-			}
-			(min_moves, min_score)
+			(best_moves, best_score)
 		}
 	}
 }
@@ -289,6 +268,8 @@ fn main() {
 		return
 	}
 
+	let mut cache: Cache = HashMap::new();
+
 	// Set blank board
 	let mut board = [[' '; N]; N];
 
@@ -301,7 +282,7 @@ fn main() {
 
 	display_board(&board);
 
-	let (mut moves, score) = max(&mut board);
+	let (mut moves, score) = minimax(&mut board, &mut cache, X);
 	println!("Best score for max: {score}");
 
 	moves.reverse();
