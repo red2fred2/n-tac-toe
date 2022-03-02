@@ -8,7 +8,7 @@ type Board = [[char; N]; N];
 /// Displays a board in the terminal
 ///
 /// * `board` - the board to display
-fn display_board(board: Board) {
+fn display_board(board: &Board) {
 	// Row by row
 	for i in 0..N {
 		// Print the dividing line
