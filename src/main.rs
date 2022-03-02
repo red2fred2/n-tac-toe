@@ -19,7 +19,7 @@ const X: bool = true;
 type Board = [[char; N]; N];
 
 /// A cache is a map of board layouts to score and best moves
-type Cache = HashMap<Board, (i8, Moves)>;
+type Cache = HashMap<Board, (Moves, i8)>;
 
 /// Describes a list of moves
 type Moves = Vec<(usize, usize)>;
@@ -162,34 +162,51 @@ fn get_possible_moves(board: &Board) -> Moves {
 /// * `player` - true if X, false if O
 /// Returns the best moves and score of that best move
 fn minimax(board: &mut Board, cache: &mut Cache, player: bool) -> (Moves, i8) {
-	match utility(board) {
-		// If terminal, pass along the score
-		(true, s) => (Vec::new(), s),
-		// Otherwise check another layer down
+	// See if this is cached
+	match cache.get(board) {
+		Some(value) => return value.clone(),
 		_ => {
-			let possible_moves = get_possible_moves(board);
+			match utility(board) {
+				// If terminal, pass along the score
+				(true, s) => {
+					let moves = Vec::new();
 
-			// Find the highest score of those moves
-			// Start with an impossibly bad score
-			let mut best_score = if player {i8::MIN} else {i8::MAX};
-			let mut best_moves = Vec::new();
+					// Add to cache as terminal
+					cache.insert(board.clone(), (Vec::new(), s));
+					(moves, s)
+				},
+				// Otherwise check another layer down
+				_ => {
+					let possible_moves = get_possible_moves(board);
 
-			for (r, c) in possible_moves {
-				board[r][c] = if player {'X'} else {'O'};
-				let (mut moves, score) = minimax(board, cache, !player);
+					// Find the highest score of those moves
+					// Start with an impossibly bad score
+					let mut best_score = if player {i8::MIN} else {i8::MAX};
+					let mut best_moves = Vec::new();
 
-				// Set the max score if this is better
-				if (player && score > best_score) ||
-				   (!player && score < best_score) {
-					best_score = score;
-					moves.push((r,c));
-					best_moves = moves;
+					// Go through all possible moves
+					for (r, c) in possible_moves {
+						board[r][c] = if player {'X'} else {'O'};
+						let (mut moves, score) = minimax(board, cache, !player);
+
+						// Set the max score if this is better
+						if (player && score > best_score) ||
+						   (!player && score < best_score) {
+							best_score = score;
+							moves.push((r,c));
+							best_moves = moves;
+						}
+
+						// Undo the move for next attempt
+						board[r][c] = ' ';
+					}
+
+					// Cache this value
+					cache.insert(board.clone(), (best_moves.clone(), best_score));
+
+					(best_moves, best_score)
 				}
-
-				// Undo the move for next attempt
-				board[r][c] = ' ';
 			}
-			(best_moves, best_score)
 		}
 	}
 }
