@@ -5,6 +5,19 @@ const N: usize = 3;
 /// A board is a row major array of characters
 type Board = [[char; N]; N];
 
+/// Returns the number of blank spaces left on this board
+///
+/// * `board` - the board to count from
+fn count_blanks(board: &Board) -> usize {
+	board.into_iter()
+		.fold(0, |acc, row|
+			acc + row.into_iter()
+				.fold(0, |acc, space|
+					if space == &' ' {acc + 1} else {acc}
+				)
+		)
+}
+
 /// Displays a board in the terminal
 ///
 /// * `board` - the board to display
@@ -34,5 +47,8 @@ fn main() {
 	// Set blank board
 	let mut board = [[' '; N]; N];
 	board[1][2] = 'X';
-	display_board(board);
+	// display_board(&board);
+	let blanks = count_blanks(&board);
+
+	println!("Blanks: {blanks}");
 }
