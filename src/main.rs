@@ -65,6 +65,20 @@ fn display_board(board: &Board) {
 	}
 }
 
+/// Returns a column from a board
+///
+/// * `col` - column number to get 0 <= col < N
+fn get_col(board: &Board, col: usize) -> [char; N] {
+	let mut array = [' '; N];
+
+	// Fill it with correct data
+	for i in 0..N {
+		array[i] = board[i][col];
+	}
+
+	array
+}
+
 /// Checks if a board is in a game ending state
 fn is_terminal(board: &Board) -> bool {
 	let num_blanks = count_blanks(board);
@@ -87,7 +101,14 @@ fn is_terminal(board: &Board) -> bool {
 		}
 	}
 
-	true
+	// Check columns
+	for col in 0..N {
+		if array_scores(&get_col(board, col)) {
+			return true
+		}
+	}
+
+	false
 }
 
 fn main() {
