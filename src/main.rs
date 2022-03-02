@@ -2,7 +2,7 @@ use std::collections::HashMap;
 
 /// How big of a board to make. Makes an NxN tic tac toe board
 /// Doesn't work when N < 2
-const N: usize = 4;
+const N: usize = 6;
 
 // Make player selection easier
 #[allow(dead_code)]
@@ -318,19 +318,19 @@ fn main() {
 	// Set blank board
 	let mut board = [[' '; N]; N];
 
-	board[0][0] = 'X';
-	board[0][1] = 'O';
-	board[0][2] = 'O';
-	board[0][3] = 'O';
+	// board[0][0] = 'X';
+	// board[0][1] = 'X';
+	// board[0][2] = 'X';
+	// board[0][3] = 'O';
 
 	// board[1][0] = 'O';
-	board[1][1] = 'X';
+	// board[1][1] = 'X';
 	// board[1][2] = 'X';
 	// board[1][3] = 'O';
 
 	// board[2][0] = 'O';
 	// board[2][1] = 'X';
-	board[2][2] = 'X';
+	// board[2][2] = 'X';
 	// board[2][3] = 'O';
 
 	// board[3][0] = 'O';
