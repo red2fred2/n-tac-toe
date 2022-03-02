@@ -159,9 +159,10 @@ fn get_possible_moves(board: &Board) -> Moves {
 ///
 /// * `board` - the board to do a min step at
 /// * `cache` - the cached of boards
+/// * `terminals` - the number of terminals checked
 /// * `player` - true if X, false if O
 /// Returns the best moves and score of that best move
-fn minimax(board: &mut Board, cache: &mut Cache, player: bool) -> (Moves, i8) {
+fn minimax(board: &mut Board, cache: &mut Cache, terminals: &mut usize, player: bool) -> (Moves, i8) {
 	// See if this is cached
 	match cache.get(board) {
 		Some(value) => return value.clone(),
@@ -170,6 +171,8 @@ fn minimax(board: &mut Board, cache: &mut Cache, player: bool) -> (Moves, i8) {
 				// If terminal, pass along the score
 				(true, s) => {
 					let moves = Vec::new();
+
+					*terminals += 1;
 
 					// Add to cache as terminal
 					cache.insert(board.clone(), (Vec::new(), s));
@@ -187,7 +190,7 @@ fn minimax(board: &mut Board, cache: &mut Cache, player: bool) -> (Moves, i8) {
 					// Go through all possible moves
 					for (r, c) in possible_moves {
 						board[r][c] = if player {'X'} else {'O'};
-						let (mut moves, score) = minimax(board, cache, !player);
+						let (mut moves, score) = minimax(board, cache, terminals, !player);
 
 						// Set the max score if this is better
 						if (player && score > best_score) ||
@@ -286,25 +289,29 @@ fn main() {
 	}
 
 	let mut cache: Cache = HashMap::new();
+	let mut terminals = 0;
 
 	// Set blank board
 	let mut board = [[' '; N]; N];
 
-	board[0][0] = 'X';
-	board[0][1] = 'O';
-	board[0][2] = 'O';
-	board[0][3] = 'O';
-	board[1][1] = 'X';
-	board[2][2] = 'X';
+	// board[0][0] = 'X';
+	// board[0][1] = 'O';
+	// board[0][2] = 'O';
+	// board[0][3] = 'O';
+	// board[1][1] = 'X';
+	// board[2][2] = 'X';
 
 	display_board(&board);
 
-	let (mut moves, score) = minimax(&mut board, &mut cache, X);
+	let (mut moves, score) = minimax(&mut board, &mut cache, &mut terminals, X);
 	println!("Best score for max: {score}");
 
 	moves.reverse();
 	println!("Moves: {:?}", moves);
-	board = replay_moves(&moves);
+	let unique = cache.len();
+	println!("Unique states: {unique}");
+	println!("Terminals examined: {terminals}");
 
+	board = replay_moves(&moves);
 	display_board(&board);
 }
