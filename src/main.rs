@@ -129,7 +129,7 @@ fn get_diag_descending(board: &Board) -> [char; N] {
 /// Returns a vector of tuples like (row, col) for possible moves
 ///
 /// * `board` - the board to check
-fn get_possible_moves(board: &Board) -> Vec<(usize, usize)> {
+fn get_possible_moves(board: &Board) -> Moves {
 	let mut moves = Vec::new();
 
 	// Check for blank spots
@@ -144,13 +144,76 @@ fn get_possible_moves(board: &Board) -> Vec<(usize, usize)> {
 	moves
 }
 
-/// Runs minmax on a board
+/// Does the best move for max (X) at this point
 ///
-/// * `board` - the board to minmax
-/// Returns the score of this board
-// fn minmax(board: &Board) -> (i8, Moves) {
+/// * `board` - the board to do a min step at
+/// Returns the best moves and score of that best move
+fn max(board: &mut Board) -> (Moves, i8) {
+	match utility(board) {
+		// If terminal, pass along the score
+		(true, s) => (Vec::new(), s),
+		// Otherwise check another layer down
+		_ => {
+			let possible_moves = get_possible_moves(board);
 
-// }
+			// Find the highest score of those moves
+			// Start with an impossibly bad score
+			let mut max_score = i8::MIN;
+			let mut max_moves = Vec::new();
+
+			for (r, c) in possible_moves {
+				board[r][c] = 'X';
+				let (mut moves, score) = min(board);
+
+				// Set the max score if this is better
+				if score > max_score {
+					max_score = score;
+					moves.push((r,c));
+					max_moves = moves;
+				}
+
+				// Undo the move for next attempt
+				board[r][c] = ' ';
+			}
+			(max_moves, max_score)
+		}
+	}
+}
+
+/// Does the best move for min (O) at this point
+///
+/// * `board` - the board to do a min step at
+/// Returns the best moves and score of that best move
+fn min(board: &mut Board) -> (Moves, i8) {
+	match utility(board) {
+		// If terminal, pass along the score
+		(true, s) => (Vec::new(), s),
+		// Otherwise check another layer down
+		_ => {
+			let possible_moves = get_possible_moves(board);
+
+			// Find the highest score of those moves
+			// Start with an impossibly bad score
+			let mut min_score = i8::MAX;
+			let mut min_moves = Vec::new();
+
+			for (r, c) in possible_moves {
+				board[r][c] = 'O';
+				let (mut moves, score) = max(board);
+
+				// Set the max score if this is better
+				if score < min_score {
+					min_score = score;
+					moves.push((r,c));
+					min_moves = moves;
+				}
+				// Undo the move for next attempt
+				board[r][c] = ' ';
+			}
+			(min_moves, min_score)
+		}
+	}
+}
 
 /// Finds the board created by a list of moves
 ///
@@ -228,6 +291,20 @@ fn main() {
 
 	// Set blank board
 	let mut board = [[' '; N]; N];
+	board[0][0] = 'X';
+	board[0][1] = 'O';
+	board[1][1] = 'X';
+	board[1][2] = 'O';
+	board[2][0] = 'X';
+	board[0][2] = 'O';
+	board[2][1] = 'X';
 
+	display_board(&board);
 
+	let (moves, score) = min(&mut board);
+	println!("Best score for max: {score}");
+
+	board = replay_moves(&moves);
+
+	display_board(&board);
 }
