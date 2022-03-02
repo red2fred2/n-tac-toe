@@ -62,6 +62,7 @@ fn count_blanks(board: &Board) -> usize {
 /// Displays a board in the terminal
 ///
 /// * `board` - the board to display
+#[allow(dead_code)]
 fn display_board(board: &Board) {
 	// Row by row
 	for i in 0..N {
@@ -162,10 +163,16 @@ fn get_possible_moves(board: &Board) -> Moves {
 /// * `terminals` - the number of terminals checked
 /// * `player` - true if X, false if O
 /// Returns the best moves and score of that best move
-fn minimax(board: &mut Board, cache: &mut Cache, terminals: &mut usize, player: bool) -> (Moves, i8) {
+fn minimax(
+	board: &mut Board,
+	cache: &mut Cache,
+	terminals: &mut usize,
+	player: bool,
+	val_to_beat: Option<i8>
+) -> (Moves, i8, Option<i8>) {
 	// See if this is cached
 	match cache.get(board) {
-		Some(value) => return value.clone(),
+		Some((m, s)) => return (m.clone(), *s, val_to_beat),
 		_ => {
 			match utility(board) {
 				// If terminal, pass along the score
@@ -175,8 +182,8 @@ fn minimax(board: &mut Board, cache: &mut Cache, terminals: &mut usize, player: 
 					*terminals += 1;
 
 					// Add to cache as terminal
-					cache.insert(board.clone(), (Vec::new(), s));
-					(moves, s)
+					// cache.insert(board.clone(), (Vec::new(), s));
+					(moves, s, Some(s))
 				},
 				// Otherwise check another layer down
 				_ => {
@@ -186,11 +193,16 @@ fn minimax(board: &mut Board, cache: &mut Cache, terminals: &mut usize, player: 
 					// Start with an impossibly bad score
 					let mut best_score = if player {i8::MIN} else {i8::MAX};
 					let mut best_moves = Vec::new();
+					let mut best_ab_val = val_to_beat;
 
 					// Go through all possible moves
 					for (r, c) in possible_moves {
 						board[r][c] = if player {'X'} else {'O'};
-						let (mut moves, score) = minimax(board, cache, terminals, !player);
+						let (mut moves, score, ab_val) = minimax(board, cache, terminals, !player, val_to_beat);
+
+						if best_ab_val == None {
+							best_ab_val = ab_val;
+						}
 
 						// Set the max score if this is better
 						if (player && score > best_score) ||
@@ -198,6 +210,17 @@ fn minimax(board: &mut Board, cache: &mut Cache, terminals: &mut usize, player: 
 							best_score = score;
 							moves.push((r,c));
 							best_moves = moves;
+
+							// Check if other moves should be pruned
+							match (ab_val, best_ab_val) {
+								(Some(a), Some(b)) => {
+									if (player && a > b) ||
+									   (!player && a < b) {
+										return (best_moves, best_score, Some(best_score))
+									}
+								},
+								_ => ()
+							}
 						}
 
 						// Undo the move for next attempt
@@ -207,7 +230,7 @@ fn minimax(board: &mut Board, cache: &mut Cache, terminals: &mut usize, player: 
 					// Cache this value
 					cache.insert(board.clone(), (best_moves.clone(), best_score));
 
-					(best_moves, best_score)
+					(best_moves, best_score, Some(best_score))
 				}
 			}
 		}
@@ -217,6 +240,7 @@ fn minimax(board: &mut Board, cache: &mut Cache, terminals: &mut usize, player: 
 /// Finds the board created by a list of moves
 ///
 /// * `moves` - the moves to replay
+#[allow(dead_code)]
 fn replay_moves(moves: &Moves) -> Board {
 	let mut board = [[' '; N]; N];
 	let mut player_x = true;
@@ -294,16 +318,29 @@ fn main() {
 	// Set blank board
 	let mut board = [[' '; N]; N];
 
-	// board[0][0] = 'X';
-	// board[0][1] = 'O';
-	// board[0][2] = 'O';
-	// board[0][3] = 'O';
-	// board[1][1] = 'X';
-	// board[2][2] = 'X';
+	board[0][0] = 'X';
+	board[0][1] = 'O';
+	board[0][2] = 'O';
+	board[0][3] = 'O';
+
+	// board[1][0] = 'O';
+	board[1][1] = 'X';
+	// board[1][2] = 'X';
+	// board[1][3] = 'O';
+
+	// board[2][0] = 'O';
+	// board[2][1] = 'X';
+	board[2][2] = 'X';
+	// board[2][3] = 'O';
+
+	// board[3][0] = 'O';
+	// board[3][1] = 'O';
+	// board[3][2] = 'O';
+	// board[3][3] = 'O';
 
 	display_board(&board);
 
-	let (mut moves, score) = minimax(&mut board, &mut cache, &mut terminals, X);
+	let (mut moves, score, _) = minimax(&mut board, &mut cache, &mut terminals, X, None);
 	println!("Best score for max: {score}");
 
 	moves.reverse();
@@ -311,7 +348,4 @@ fn main() {
 	let unique = cache.len();
 	println!("Unique states: {unique}");
 	println!("Terminals examined: {terminals}");
-
-	board = replay_moves(&moves);
-	display_board(&board);
 }
