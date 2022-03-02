@@ -291,19 +291,14 @@ fn main() {
 
 	// Set blank board
 	let mut board = [[' '; N]; N];
-	board[0][0] = 'X';
-	board[0][1] = 'O';
-	board[1][1] = 'X';
-	board[1][2] = 'O';
-	board[2][0] = 'X';
-	board[0][2] = 'O';
-	board[2][1] = 'X';
 
 	display_board(&board);
 
-	let (moves, score) = min(&mut board);
+	let (mut moves, score) = max(&mut board);
 	println!("Best score for max: {score}");
 
+	moves.reverse();
+	println!("Moves: {:?}", moves);
 	board = replay_moves(&moves);
 
 	display_board(&board);
