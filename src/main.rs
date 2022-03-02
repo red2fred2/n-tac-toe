@@ -67,13 +67,52 @@ fn display_board(board: &Board) {
 
 /// Returns a column from a board
 ///
+/// * `board` - the board to get a column from
 /// * `col` - column number to get 0 <= col < N
 fn get_col(board: &Board, col: usize) -> [char; N] {
-	let mut array = [' '; N];
+	let mut array = ['*'; N];
 
 	// Fill it with correct data
 	for i in 0..N {
 		array[i] = board[i][col];
+	}
+
+	array
+}
+
+/// Returns the ascending diagonal from a board
+///
+/// |   |   |   | X |
+/// |   |   | X |   |
+/// |   | X |   |   |
+/// | X |   |   |   |
+///
+/// * `board` - the board to get this diagonal from
+fn get_diag_ascending(board: &Board) -> [char; N] {
+	let mut array = ['*'; N];
+
+	// Fill it with correct data
+	for i in 0..N {
+		array[i] = board[N-i-1][i];
+	}
+
+	array
+}
+
+/// Returns the descending diagonal from a board
+///
+/// | X |   |   |   |
+/// |   | X |   |   |
+/// |   |   | X |   |
+/// |   |   |   | X |
+///
+/// * `board` - the board to get this diagonal from
+fn get_diag_descending(board: &Board) -> [char; N] {
+	let mut array = ['*'; N];
+
+	// Fill it with correct data
+	for i in 0..N {
+		array[i] = board[i][i];
 	}
 
 	array
@@ -106,6 +145,14 @@ fn is_terminal(board: &Board) -> bool {
 		if array_scores(&get_col(board, col)) {
 			return true
 		}
+	}
+
+	// Check diagonals
+	if array_scores(&get_diag_descending(board)) {
+		return true
+	}
+	if array_scores(&get_diag_ascending(board)) {
+		return true
 	}
 
 	false
