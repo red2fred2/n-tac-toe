@@ -119,6 +119,24 @@ fn get_diag_descending(board: &Board) -> [char; N] {
 	array
 }
 
+/// Returns a vector of tuples like (row, col) for possible moves
+///
+/// * `board` - the board to check
+fn get_possible_moves(board: &Board) -> Vec<(usize, usize)> {
+	let mut moves = Vec::new();
+
+	// Check for blank spots
+	for r in 0..N {
+		for c in 0..N {
+			if board[r][c] == ' ' {
+				moves.push((r, c));
+			}
+		}
+	}
+
+	moves
+}
+
 /// Checks if a board is in a game ending state,
 ///
 /// returns (false, _) if not the end.
