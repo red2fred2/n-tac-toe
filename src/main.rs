@@ -100,8 +100,7 @@ fn main() {
 	// Set blank board
 	let mut board = [[' '; N]; N];
 	board[1][2] = 'X';
-	// display_board(&board);
-	let blanks = count_blanks(&board);
-
-	println!("Blanks: {blanks}");
+	display_board(&board);
+	let is_terminal = is_terminal(&board);
+	println!("Game end?: {is_terminal}");
 }
